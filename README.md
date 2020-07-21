@@ -233,6 +233,19 @@ true (default) // Whether only exact matches are returned
   </tr>
   <tr>
     <td>
+      <code>className</code>
+    </td>
+    <td>
+      Class attribute applied to the table
+    </td>
+    <td>
+      <pre>
+table
+      </pre>
+    </td>
+  </tr>
+  <tr>
+    <td>
       <code>serverSearch</code>
     </td>
     <td>

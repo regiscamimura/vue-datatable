@@ -1,5 +1,5 @@
 <template>
-	<div class="card" ref="table">
+	<div class="datatable-wrapper" ref="table">
 		<div class="table-header">
 			<span class="table-title">{{ title }}</span>
 			<div class="actions">
@@ -43,7 +43,7 @@
 				</label>
 			</div>
 		</div>
-		<table ref="table" class="table">
+		<table ref="table" :class="className">
 			<thead>
 				<tr>
 					<th v-for="(column, index) in columns"
@@ -93,21 +93,28 @@
 		</table>
 
 		<div v-if="paginate" class="table-footer">
-			<div :class="{'datatable-length': true, 'rtl': lang.__is_rtl}">
-				<label>
-					<span>{{ lang['rows_per_page'] }}:</span>
-					<select class="browser-default" @change="onTableLength">
-						<option v-for="(option, index) in perPageOptions"
-							:key="index"
-							:value="option"
-							:selected="option == currentPerPage"
-						>
-							{{ option === -1 ? lang['all'] : option }}
-						</option>
-					</select>
-				</label>
+			<div class="buttons" :class="{'disabled': currentPage == 1}">
+				<a href="javascript:undefined" @click.prevent="firstPage"> << </a>
+				<a href="javascript:undefined" @click.prevent="previousPage"> < </a>
 			</div>
-			<div :class="{'datatable-info': true, 'rtl': lang.__is_rtl}">
+			<div :class="{'datatable-length': true, 'rtl': lang.__is_rtl}">
+
+				<div class="datatable-page-link">
+					<a :class="{'selected': currentPage == n}" href="javascript:undefined" @click.prevent="goToPage(n)" v-for="n in Math.ceil(processedRows.length / currentPerPage)">{{n}}</a>
+				</div>
+
+				<select class="browser-default" @change="onTableLength">
+					<option v-for="(option, index) in perPageOptions"
+						:key="index"
+						:value="option"
+						:selected="option == currentPerPage"
+					>
+						{{ option === -1 ? lang['all'] : option }} {{ lang['rows'] }}
+					</option>
+				</select>
+
+			</div>
+			<div :class="{'datatable-info': true, 'rtl': lang.__is_rtl}" v-if="showRecordsCount">
 				<span>{{ (currentPage - 1) * currentPerPage ? (currentPage - 1) * currentPerPage : 1 }}
 					-{{ Math.min(processedRows.length, currentPerPage * currentPage) }}
 				</span>
@@ -118,27 +125,9 @@
 					{{ processedRows.length }}
 				</span>
 			</div>
-			<div>
-				<ul class="pagination">
-					<li>
-						<a href="javascript:undefined"
-							class="waves-effect btn-flat"
-							tabindex="0"
-							@click.prevent="previousPage"
-						>
-							<i class="material-icons">chevron_left</i>
-						</a>
-					</li>
-					<li>
-						<a href="javascript:undefined"
-							class="waves-effect btn-flat"
-							tabindex="0"
-							@click.prevent="nextPage"
-						>
-							<i class="material-icons">chevron_right</i>
-						</a>
-					</li>
-				</ul>
+			<div class="buttons" :class="{'disabled': processedRows.length <= currentPerPage * currentPage}">
+				<a href="javascript:undefined" @click.prevent="nextPage"> > </a>
+				<a href="javascript:undefined" @click.prevent="lastPage"> >> </a>
 			</div>
 		</div>
 	</div>
@@ -161,12 +150,15 @@
 				type: String,
 				required: true,
 			},
-
+			className: {
+				type: String,
+				required: false,
+				default: 'table'
+			},
 			columns: {
 				type: Array,
 				required: true,
 			},
-
 			rows: {
 				type: Array,
 				required: true,
@@ -262,6 +254,12 @@
 				default: true,
 			},
 
+			showRecordsCount: {
+				type: Boolean,
+				required: false,
+				default: false,
+			}
+
 		},
 
 		data: () => ({
@@ -283,6 +281,18 @@
 			previousPage() {
 				if (this.currentPage > 1)
 					--this.currentPage;
+			},
+
+			firstPage() {
+				this.currentPage = 1;
+			},
+
+			lastPage() {
+				this.currentPage = Math.ceil(this.processedRows.length / this.currentPerPage);
+			},
+
+			goToPage(n) {
+				if (n >= 1 && n <= Math.ceil(this.processedRows.length / this.currentPerPage)) this.currentPage = n;
 			},
 
 			onTableLength(e) {
@@ -318,22 +328,70 @@
 				this.$emit('row-click', row);
 			},
 
-			exportExcel() {
-				const mimeType = 'data:application/vnd.ms-excel';
-				const html = this.renderTable().replace(/ /g, '%20');
+			generateCSV() {
 
-				// eslint-disable-next-line eqeqeq
+			},
+			exportExcel() {
+				var csv = [];
+				var doc = new DOMParser().parseFromString(this.renderTable(), "text/html");
+				var rows = doc.querySelectorAll("table tr");
+
+				for (var i = 0; i < rows.length; i++) {
+					var row = [], cols = rows[i].querySelectorAll("td, th");
+
+					for (var j = 0; j < cols.length; j++)
+						row.push(cols[j].innerText);
+
+					csv.push(row.join(","));
+				}
+
+				csv = csv.join("\n");
+
+				 // CSV FILE
+				var csvFile = new Blob([csv], {type: "text/csv"});
+
+				// Download link
+				var downloadLink = document.createElement("a");
+
 				const documentPrefix = this.title != '' ? this.title.replace(/ /g, '-') : 'Sheet';
 				const d = new Date();
 
-				const dummy = document.createElement('a');
-				dummy.href = mimeType + ', ' + html;
-				dummy.download = documentPrefix
+				var filename = documentPrefix
 					+ '-' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate()
 					+ '-' + d.getHours() + '-' + d.getMinutes() + '-' + d.getSeconds()
-					+ '.xls';
-				document.body.appendChild(dummy);
-				dummy.click();
+					+ '.csv';
+
+				// File name
+				downloadLink.download = filename;
+
+				// We have to create a link to the file
+				downloadLink.href = window.URL.createObjectURL(csvFile);
+
+				// Make sure that the link is not displayed
+				downloadLink.style.display = "none";
+
+				// Add the link to your DOM
+				document.body.appendChild(downloadLink);
+
+				// Lanzamos
+				downloadLink.click();
+
+				// const mimeType = 'data:application/vnd.ms-excel';
+				// const html = this.renderTable().replace(/ /g, '%20');
+
+				// // eslint-disable-next-line eqeqeq
+				// const documentPrefix = this.title != '' ? this.title.replace(/ /g, '-') : 'Sheet';
+				// const d = new Date();
+
+				// const dummy = document.createElement('a');
+				// dummy.href = mimeType + ', ' + html;
+				// dummy.download = documentPrefix
+				// 	+ '-' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate()
+				// 	+ '-' + d.getHours() + '-' + d.getMinutes() + '-' + d.getSeconds()
+				// 	+ '.xls';
+				// document.body.appendChild(dummy);
+				// dummy.click();
+
 			},
 
 			print(target) {
@@ -344,7 +402,7 @@
 				clonedTable.style.boxShadow = '0px 0px 0px 1px rgba(0,0,0,0.2)';
 				clonedTable.style.margin = '8px auto';
 				clonedTable.querySelector('.actions').remove();
-				clonedTable.querySelector('.material-pagination').remove();
+				clonedTable.querySelector('.datatable-pagination').remove();
 				clonedTable.querySelector('.datatable-length').remove();
 
 				clonedTable.querySelectorAll('button').forEach(n => n.remove());
@@ -563,8 +621,8 @@
 	};
 </script>
 
-<style scoped>
-	div.material-table {
+<style scoped lang="scss" rel="stylesheet/scss">
+	div.datatable-wrapper {
 		padding: 0;
 	}
 
@@ -586,17 +644,12 @@
 
 	table {
 		table-layout: fixed;
+		margin-bottom: 0;
 	}
 
 	.table-header {
-		height: 64px;
-		padding-left: 24px;
-		padding-right: 14px;
-		-webkit-align-items: center;
-		-ms-flex-align: center;
 		align-items: center;
 		display: flex;
-		-webkit-display: flex;
 		border-bottom: solid 1px #DDDDDD;
 	}
 
@@ -606,8 +659,8 @@
 	}
 
 	.table-header .btn-flat {
-			min-width: 36px;
-			padding: 0 8px;
+		min-width: 36px;
+		padding: 0 8px;
 	}
 
 	.table-header input {
@@ -621,28 +674,63 @@
 	}
 
 	.table-footer {
-		height: 56px;
-		padding-left: 24px;
-		padding-right: 14px;
-		display: -webkit-flex;
 		display: flex;
-		-webkit-flex-direction: row;
 		flex-direction: row;
-		-webkit-justify-content: flex-end;
-		justify-content: flex-end;
-		-webkit-align-items: center;
+		justify-content: space-between;
 		align-items: center;
-		font-size: 12px !important;
 		color: rgba(0, 0, 0, 0.54);
+		//border-top: 1px solid #E1E1E1;
+		box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.1);
+		> div {
+			display: flex;
+			align-items: center;
+		}
 	}
 
 	.table-footer .datatable-length {
-		display: -webkit-flex;
 		display: flex;
-	}
+		select {
+			outline: none;
+			border: 1px solid #e1e1e1;
+			padding: 3px;
+		}
+		.datatable-page-link {
+			display: flex;
+			a {
+				border: 1px solid #e1e1e1;
+				font-size: 12px;
+				padding: 2px;
+				min-width: 20px;
+				margin: 0 1px;
+				text-align: center;
+				display: block;
+				text-decoration: none;
+				&.selected {
+					background-color: #e1e1e1;
+				}
+			}
+		}
 
-	.table-footer .datatable-length select {
-		outline: none;
+	}
+	.buttons {
+		padding: 3px;
+		font-size: 11px;
+		cursor: default;
+		a {
+			margin: 1px;
+			display: inline-block;
+			background-color: #E1E1E1;
+			padding: 7.5px 5px;
+			color: #525252;
+			text-decoration: none;
+		}
+		&.disabled {
+			a {
+				background-color: #EFEFEF;
+				color: darken(#EFEFEF, 20);
+				cursor: default;
+			}
+		}
 	}
 
 	.table-footer label {
@@ -661,30 +749,21 @@
 	}
 
 	.table-footer .select-wrapper {
-		display: -webkit-flex;
-		display: flex;
-		-webkit-flex-direction: row;
-		/* works with row or column */
 
-		flex-direction: row;
-		-webkit-align-items: center;
-		align-items: center;
-		-webkit-justify-content: center;
-		justify-content: center;
 	}
 
 	.table-footer .datatable-info,
 	.table-footer .datatable-length {
-		margin-right: 32px;
+
 	}
 
-	.table-footer .material-pagination {
+	.table-footer .datatable-pagination {
 		display: flex;
 		-webkit-display: flex;
 		margin: 0;
 	}
 
-	.table-footer .material-pagination li a {
+	.table-footer .datatable-pagination li a {
 		color: rgba(0, 0, 0, 0.54);
 		padding: 0 8px;
 		font-size: 24px;
@@ -715,103 +794,84 @@
 		color: #000;
 	}
 
-	table tr td {
-		padding: 0 0 0 56px;
-		height: 48px;
-		font-size: 13px;
-		color: rgba(0, 0, 0, 0.87);
-		border-bottom: solid 1px #DDDDDD;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	table td, table th {
-		border-radius: 0;
-	}
-
-	table tr td a {
-		color: inherit;
-	}
-
-	table tr td a i {
-		font-size: 18px;
-		color: rgba(0, 0, 0, 0.54);
-	}
-
-	table tr {
-		font-size: 12px;
-	}
-
-	table th {
-		font-size: 12px;
-		font-weight: 500;
-		color: #757575;
-		cursor: pointer;
-		white-space: nowrap;
-		padding: 0;
-		height: 56px;
-		padding-left: 56px;
-		vertical-align: middle;
-		outline: none !important;
-
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	table th:hover {
-		overflow: visible;
-		text-overflow: initial;
-	}
-
-	table th.sorting-asc,
-	table th.sorting-desc {
-		color: rgba(0, 0, 0, 0.87);
-	}
-
-	table th.sorting:after,
-	table th.sorting-asc:after {
-		font-family: 'Material Icons';
-		font-weight: normal;
-		font-style: normal;
-		font-size: 16px;
-		line-height: 1;
-		letter-spacing: normal;
-		text-transform: none;
-		display: inline-block;
-		word-wrap: normal;
-		-webkit-font-feature-settings: 'liga';
-		-webkit-font-smoothing: antialiased;
-		content: "arrow_back";
-		-webkit-transform: rotate(90deg);
-		display: none;
-		vertical-align: middle;
-	}
-
-	table th.sorting:hover:after,
-	table th.sorting-asc:after,
-	table th.sorting-desc:after {
-		display: inline-block;
-	}
-
-	table th.sorting-desc:after {
-		content: "arrow_forward";
-	}
-
-	table tbody tr:hover {
-		background-color: #EEE;
-	}
-
-	table th:last-child,
-	table td:last-child {
-		padding-right: 14px;
-	}
-
-	table th:first-child, table td:first-child {
-		padding-left: 24px;
-	}
-
 	.rtl {
 		direction: rtl;
+	}
+
+	.datatable-wrapper {
+		border: none;
+		.table-header {
+			border-bottom: none ;
+			height: auto ;
+			.actions {
+				height: auto;
+			}
+		}
+		table {
+			border: 1px solid #dee2e6;
+			width: 100%;
+			thead {
+				th {
+					border: 1px solid #dee2e6;
+					border-bottom: none;
+					position: relative;
+					padding: 0.75rem !important;
+					font-weight: bold;
+					font-family: "Roboto Condensed";
+					font-size: 1rem !important;
+					color: #212529;
+					overflow: visible;
+
+					&.sorting {
+						cursor: pointer;
+					}
+					&:after {
+						display: none !important;
+					}
+					&.sorting-asc {
+						&:before {
+							content: "";
+							height: 3px;
+							background: #5B5B5B;
+							display: block;
+							position: absolute;
+							top: -1px;
+							left: -1px;
+							right: -1px;
+							width: calc(100% + 2px);
+						}
+					}
+					&.sorting-desc {
+						&:before {
+							content: "";
+							height: 4px;
+							background: #5B5B5B;
+							display: block;
+							position: absolute;
+							bottom: 0px;
+							left: -1px;
+							right: -1px;
+							width: calc(100% + 2px);
+						}
+					}
+
+				}
+			}
+			tbody {
+				td {
+					padding: 0.75rem !important;
+					border: none !important;
+					font-size: 1rem !important;
+
+				}
+				tr:nth-of-type(even) {
+					background-color: rgba(0, 0, 0, 0.05);
+				}
+			}
+		}
+
+	}
+	.table-header {
+		border: none;
 	}
 </style>

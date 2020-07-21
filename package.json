@@ -1,6 +1,6 @@
 {
 	"name": "@regiscamimura/vue-datatable",
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"description": "Datatable for Vue.js",
 	"author": "Regis Camimura <regis.camimura@gmail.com>",
 	"private": false,
