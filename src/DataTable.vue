@@ -1,5 +1,5 @@
 <template>
-	<div class="card material-table" ref="table">
+	<div class="card" ref="table">
 		<div class="table-header">
 			<span class="table-title">{{ title }}</span>
 			<div class="actions">
@@ -119,7 +119,7 @@
 				</span>
 			</div>
 			<div>
-				<ul class="material-pagination">
+				<ul class="pagination">
 					<li>
 						<a href="javascript:undefined"
 							class="waves-effect btn-flat"

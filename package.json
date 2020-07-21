@@ -1,5 +1,5 @@
 {
-	"name": "@regiscamimura/vue-materialize-datatable",
+	"name": "@regiscamimura/vue-datatable",
 	"version": "1.0.4",
 	"description": "Datatable for Vue.js",
 	"author": "Regis Camimura <regis.camimura@gmail.com>",
@@ -13,7 +13,6 @@
 	"keywords": [
 		"Vue",
 		"Datatable",
-		"Materialize",
 		"Table Component"
 	],
 	"repository": {
