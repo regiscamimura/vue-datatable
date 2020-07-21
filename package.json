@@ -1,8 +1,8 @@
 {
-	"name": "vue-materialize-datatable",
-	"version": "1.0.3",
-	"description": "Datatable for VueJS with Materialize",
-	"author": "Yousef Sultan <yousef.su.2000@gmail.com>",
+	"name": "@regiscamimura/vue-materialize-datatable",
+	"version": "1.0.4",
+	"description": "Datatable for Vue.js",
+	"author": "Regis Camimura <regis.camimura@gmail.com>",
 	"private": false,
 	"main": "./src/DataTable.vue",
 	"license": "MIT",
@@ -18,11 +18,11 @@
 	],
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/MicroDroid/vue-materialize-datatable.git"
+		"url": "git+https://github.com/regiscamimura/vue-datatable.git"
 	},
-	"homepage": "https://github.com/MicroDroid/vue-materialize-datatable",
+	"homepage": "https://github.com/regiscamimura/vue-datatable",
 	"bugs": {
-		"url": "https://github.com/MicroDroid/vue-materialize-datatable/issues"
+		"url": "https://github.com/regiscamimura/vue-datatable/issues"
 	},
 	"dependencies": {
 		"fuse.js": "^2.6.2",
@@ -42,7 +42,6 @@
 		"eslint-plugin-vue": "^5.2.3",
 		"file-loader": "^4.2.0",
 		"highlight.js": "^9.15.10",
-		"materialize-css": "^1.0.0",
 		"mini-css-extract-plugin": "^0.8.0",
 		"node-sass": "^4.13.0",
 		"optimize-css-assets-webpack-plugin": "^5.0.3",

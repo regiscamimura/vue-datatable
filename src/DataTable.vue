@@ -43,7 +43,7 @@
 				</label>
 			</div>
 		</div>
-		<table ref="table">
+		<table ref="table" class="table">
 			<thead>
 				<tr>
 					<th v-for="(column, index) in columns"
@@ -271,6 +271,7 @@
 			sortType: 'asc',
 			searching: false,
 			searchInput: '',
+			win: null
 		}),
 
 		methods: {
@@ -286,6 +287,7 @@
 
 			onTableLength(e) {
 				this.currentPerPage = parseInt(e.target.value);
+				this.currentPage = 1;
 			},
 
 			sort(index) {
@@ -334,7 +336,7 @@
 				dummy.click();
 			},
 
-			print() {
+			print(target) {
 				const clonedTable = this.$refs.table.cloneNode(true);
 				this.synchronizeCssStyles(this.$refs.table, clonedTable, true);
 
@@ -347,7 +349,8 @@
 
 				clonedTable.querySelectorAll('button').forEach(n => n.remove());
 
-				let win = window.open('', '');
+				let win = window.open('', target);
+				this.win = win;
 
 
 				win.document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
