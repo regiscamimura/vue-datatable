@@ -1,9 +1,3 @@
-# vue-materialize-datatable [![NPM version](https://badge.fury.io/js/vue-materialize-datatable.svg)](https://badge.fury.io/js/vue-materialize-datatable) [![Snippets Stats](https://codebottle.io/embed/search-badge?keywords=vue%20materialize%20datatable&language=6)](https://codebottle.io/?q=vue%20materialize%20datatable)
-
-> A fancy Materialize CSS datatable VueJS component
-<!-- -->
-> BTC donations: `16dt5DdjGvduZ3KZcFrwsBA82qqfrcbeUQ`
-
 ![Screenshot](http://i.imgur.com/15tApXu.png)
 
 ## Demo
@@ -27,39 +21,12 @@ https://microdroid.github.io/vue-materialize-datatable/
 
 ## Requirements
 
-- [`materialize-css`](https://www.npmjs.com/package/materialize-css) (and **NOT** any other MD library!)
 - VueJS 2
 
 ## Installation
 
 ```bash
-npm i vue-materialize-datatable --save
-```
-
-**You also need to include Material Design icons.** You have two ways of doing this:
-
-The first and the recommended way is loading via Google's CDN, by adding this tag to your HTML
-
-```HTML
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-```
-
-Or this in your CSS/Sass files:
-
-```CSS
-@import url(http://fonts.googleapis.com/icon?family=Material+Icons);
-```
-
-**Alternatively**, you can use the NPM package and add the font to your bundle by:
-
-```
-npm i material-design-icons-iconfont -S
-```
-
-and then include it in your Sass/CSS files
-
-```CSS
-@import "~material-design-icons-iconfont/dist/material-design-icons";
+npm i @regiscamimura/vue-datatable --save
 ```
 
 ## Usage
@@ -67,7 +34,7 @@ and then include it in your Sass/CSS files
 Include the component,
 
 ```javascript
-import DataTable from "vue-materialize-datatable";
+import DataTable from "@regiscamimura/vue-datatable";
 ```
 
 Then, register the component, however you like:
