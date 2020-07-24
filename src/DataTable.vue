@@ -1,5 +1,5 @@
 <template>
-	<div class="datatable-wrapper" ref="table">
+	<div class="datatable-wrapper" ref="tableWrapper">
 		<div class="table-header">
 			<span class="table-title">{{ title }}</span>
 			<div class="actions">
@@ -129,6 +129,18 @@
 				<a href="javascript:undefined" @click.prevent="nextPage"> > </a>
 				<a href="javascript:undefined" @click.prevent="lastPage"> >> </a>
 			</div>
+		</div>
+
+		<div class="d-none" ref="print">
+			table.print {
+				width: 100%;
+				border-collapse: collapse;
+			}
+			table.print tr td, table.print tr th {
+				padding: 15px;
+				border: 1px solid #e1e1e1;
+				text-align: left;
+			}
 		</div>
 	</div>
 </template>
@@ -367,13 +379,8 @@
 				// We have to create a link to the file
 				downloadLink.href = window.URL.createObjectURL(csvFile);
 
-				// Make sure that the link is not displayed
 				downloadLink.style.display = "none";
-
-				// Add the link to your DOM
 				document.body.appendChild(downloadLink);
-
-				// Lanzamos
 				downloadLink.click();
 
 				// const mimeType = 'data:application/vnd.ms-excel';
@@ -396,23 +403,23 @@
 
 			print(target) {
 				const clonedTable = this.$refs.table.cloneNode(true);
-				this.synchronizeCssStyles(this.$refs.table, clonedTable, true);
+				clonedTable.classList.add("print");
+				//this.synchronizeCssStyles(this.$refs.table, clonedTable, true);
 
 				clonedTable.style.maxWidth = '100%';
 				clonedTable.style.boxShadow = '0px 0px 0px 1px rgba(0,0,0,0.2)';
 				clonedTable.style.margin = '8px auto';
-				clonedTable.querySelector('.actions').remove();
-				clonedTable.querySelector('.datatable-pagination').remove();
-				clonedTable.querySelector('.datatable-length').remove();
 
-				clonedTable.querySelectorAll('button').forEach(n => n.remove());
 
 				let win = window.open('', target);
 				this.win = win;
 
+				const style = this.$refs.print.cloneNode(true);
+
+				var html = '<style>'+style.innerHTML+'</style>' + clonedTable.outerHTML;
 
 				win.document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
-				win.document.body.innerHTML = (clonedTable.outerHTML);
+				win.document.body.innerHTML = (html);
 
 				win.print();
 
@@ -471,45 +478,6 @@
 					return this.dig(obj, field);
 				else
 					return undefined;
-			},
-
-			/* https://codebottle.io/s/31b70f5391
-			 *
-			 * @author: Luigi D'Amico (www.8bitplatoon.com)
-			 */
-			synchronizeCssStyles(src, destination, recursively) {
-				destination.style.cssText = this.getComputedStyleCssText(src);
-
-				if (recursively) {
-					const vSrcElements = src.getElementsByTagName('*');
-					const vDstElements = destination.getElementsByTagName('*');
-
-					for (var i = vSrcElements.length; i--;) {
-						const vSrcElement = vSrcElements[i];
-						const vDstElement = vDstElements[i];
-						vDstElement.style.cssText = this.getComputedStyleCssText(vSrcElement);
-					}
-				}
-			},
-
-			// https://gist.github.com/johnkpaul/1754808
-			//
-			// Please delete Firefox.
-			getComputedStyleCssText(element) {
-				const cssObject = window.getComputedStyle(element);
-				const cssAccumulator = [];
-
-				if (cssObject.cssText !== ''){
-					return cssObject.cssText;
-				}
-
-				for (let prop in cssObject){
-					if (typeof cssObject[prop] === 'string'){
-						cssAccumulator.push(prop + ' : ' + cssObject[prop]);
-					}
-				}
-
-				return cssAccumulator.join('; ');
 			},
 		},
 
@@ -873,5 +841,12 @@
 	}
 	.table-header {
 		border: none;
+	}
+	table .print {
+		tr {
+			td, th {
+				border: 1px solid #e1e1e1 !important;
+			}
+		}
 	}
 </style>
