@@ -1,5 +1,8 @@
 <template>
 	<div class="datatable-wrapper" ref="tableWrapper">
+		<div ref="print-header" style="display: none" class="print-header">
+			<slot name="print-header"></slot>
+		</div>
 		<div class="table-header">
 			<span class="table-title">{{ title }}</span>
 			<div class="actions">
@@ -131,7 +134,7 @@
 			</div>
 		</div>
 
-		<div class="d-none" ref="print">
+		<div style="display: none" ref="print">
 			table.print {
 				width: 100%;
 				border-collapse: collapse;
@@ -140,6 +143,15 @@
 				padding: 15px;
 				border: 1px solid #e1e1e1;
 				text-align: left;
+			}
+			.print-header {
+				display: flex !important;
+			}
+			.print-header img {
+				max-width: 100%;
+			}
+			.print-header div {
+				flex-grow: 1;
 			}
 		</div>
 	</div>
@@ -416,14 +428,14 @@
 
 				const style = this.$refs.print.cloneNode(true);
 
-				var html = '<style>'+style.innerHTML+'</style>' + clonedTable.outerHTML;
+				const header = this.$refs['print-header'].cloneNode(true);
+
+				var html = '<style>'+style.innerHTML+'</style>' + header.outerHTML + clonedTable.outerHTML;
 
 				win.document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
 				win.document.body.innerHTML = (html);
 
-				win.print();
-
-				win.close();
+				win.document.body.load = win.print();
 			},
 
 			renderTable() {
