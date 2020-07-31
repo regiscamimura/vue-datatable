@@ -102,7 +102,7 @@
 			</div>
 			<div :class="{'datatable-length': true, 'rtl': lang.__is_rtl}">
 
-				<div class="datatable-page-link">
+				<div class="datatable-page-link" v-if="currentPerPage > 0">
 					<a :class="{'selected': currentPage == n}" href="javascript:undefined" @click.prevent="goToPage(n)" v-for="n in Math.ceil(processedRows.length / currentPerPage)">{{n}}</a>
 				</div>
 
@@ -128,7 +128,7 @@
 					{{ processedRows.length }}
 				</span>
 			</div>
-			<div class="buttons" :class="{'disabled': processedRows.length <= currentPerPage * currentPage}">
+			<div class="buttons" :class="{'disabled': processedRows.length <= currentPerPage * currentPage || currentPerPage < 0}">
 				<a href="javascript:undefined" @click.prevent="nextPage"> > </a>
 				<a href="javascript:undefined" @click.prevent="lastPage"> >> </a>
 			</div>
@@ -435,7 +435,29 @@
 				win.document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
 				win.document.body.innerHTML = (html);
 
-				win.document.body.load = win.print();
+				var imagesLoaded = 0;
+				var images = win.document.getElementsByTagName('img');
+
+				var totalImages = images.length;
+
+				var img = {};
+				for (var i = 0; i < images.length; i++) {
+					img[i] = new Image();
+					img[i].onload = imageLoaded;
+					img[i].src = images[i].getAttribute('src');
+				}
+
+				function imageLoaded() {
+					imagesLoaded++;
+					if (imagesLoaded == totalImages) {
+						allImagesLoaded();
+					}
+				}
+
+				function allImagesLoaded() {
+					win.print();
+				}
+
 			},
 
 			renderTable() {
@@ -579,11 +601,12 @@
 			paginated() {
 				let paginatedRows = this.processedRows;
 
-				if (this.paginate && this.currentPerPage !== -1)
+				if (this.paginate && this.currentPerPage !== -1) {
 					paginatedRows = paginatedRows.slice(
 						(this.currentPage - 1) * this.currentPerPage,
 						this.currentPerPage === -1 ? paginatedRows.length + 1 : this.currentPage * this.currentPerPage
 					);
+				}
 
 				return paginatedRows;
 			},
